@@ -1,0 +1,141 @@
+**Assignment 1**
+
+
+Predict the price of the Uber ride from a given pickup point to the agreed drop-off location.
+Perform following tasks:
+1. Pre-process the dataset.
+2. Identify outliers.
+3. Check the correlation.
+4. Implement linear regression and random forest regression models.
+5. Evaluate the models and compare their respective scores like R2, RMSE, etc.
+Dataset link: https://www.kaggle.com/datasets/yasserh/uber-fares-dataset
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score,mean_squared_error,mean_absolute_error
+from sklearn.preprocessing import MinMaxScaler
+
+df = pd.read_csv("uber.csv")
+
+df
+
+df.shape
+
+df.dtypes
+
+df.describe()
+
+df.info()
+
+df.columns
+
+df.isnull().sum()
+
+df.dropna(inplace =True)
+
+df.isnull().sum()
+
+df.drop("Unnamed: 0",inplace = True,axis = 1)
+
+fig , ax = plt.subplots(1,5,figsize=(10,2))
+plt.subplots_adjust(wspace = 1)
+
+columns = ["pickup_longitude","pickup_latitude","dropoff_longitude","dropoff_latitude","passenger_count"]
+
+for i,col in enumerate(columns):
+    sns.boxplot(ax = ax[i],y = df[col].values,color = "tomato")
+    ax[i].set_title(col)
+plt.show()
+
+df2 = df.drop(["key","pickup_datetime"],axis = 1)
+q1 = df2.quantile(0.25)
+q3 = df2.quantile(0.75)
+iqr = q3 - q1
+outliers = ((df2 < (q1 - 1.5*iqr)) | (df2 > (q3 + 1.5*iqr)))
+outliers_count = outliers.sum()
+print("Number of outliers of each column : ",outliers_count)
+
+df2 = df2.astype("float")
+df2.where(~outliers,df2.mean(),inplace = True,axis=1)
+
+df2["key"] = df.key
+df2["pickup_datetime"] = df.pickup_datetime
+df = df2
+df
+
+numeric_df = df.select_dtypes(include = ["number"])
+sns.heatmap(numeric_df.corr(),annot=True)
+plt.title("Correlation between numeric features")
+plt.show()
+
+R = 6371
+df["Distance"] = 2 * R * np.arcsin(
+    np.sqrt(
+        (np.sin(np.radians(df["pickup_latitude"] - df["dropoff_latitude"])/2)) **2 +
+        np.cos(np.radians(df["pickup_latitude"])) * np.cos(np.radians(df["dropoff_latitude"])) *
+        (np.sin(np.radians(df["pickup_longitude"] - df["dropoff_longitude"])/2)) **2 
+    )
+)
+
+numeric_df = df.select_dtypes(include = ["number"])
+sns.heatmap(numeric_df.corr(),annot=True)
+plt.title("Correlation between numeric features")
+plt.show()
+
+train,test = train_test_split(df,test_size = 0.3,random_state =0)
+x_train , y_train = train.drop(["key","pickup_datetime","fare_amount"],axis = 1).values ,train["fare_amount"].values
+x_test , y_test = test.drop(["key","pickup_datetime","fare_amount"],axis = 1).values ,test["fare_amount"].values
+
+sc = MinMaxScaler()
+x_train = sc.fit_transform(x_train)
+x_test = sc.transform(x_test)
+
+lr = LinearRegression()
+
+lr.fit(x_train,y_train)
+
+y_pred_lr = lr.predict(x_test)
+
+rmse = np.sqrt(mean_squared_error(y_test,y_pred_lr))
+mse = mean_squared_error(y_test,y_pred_lr)
+mae = mean_absolute_error(y_test,y_pred_lr)
+r2 = r2_score(y_test,y_pred_lr)
+print("Root Mean Square Error : ",rmse)
+print("Mean Square Error : ",mse)
+print("Mean Absolute Error : ",mae)
+print("R2 Score : ",r2)
+
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)
+plt.scatter(y_test, y_pred_lr,  color='blue')
+plt.xlabel('Actual Fare')
+plt.ylabel('Predicted Fare')
+plt.title('Actual vs Predicted (Linear Regression)')
+
+rf= RandomForestRegressor()
+
+rf.fit(x_train,y_train)
+
+y_pred_rf = rf.predict(x_test)
+
+rmse = np.sqrt(mean_squared_error(y_test,y_pred_rf))
+mse = mean_squared_error(y_test,y_pred_rf)
+mae = mean_absolute_error(y_test,y_pred_rf)
+r2 = r2_score(y_test,y_pred_rf)
+print("Root Mean Square Error : ",rmse)
+print("Mean Square Error : ",mse)
+print("Mean Absolute Error : ",mae)
+print("R2 Score : ",r2)
+
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)
+plt.scatter(y_test, y_pred_rf,  color='blue')
+plt.xlabel('Actual Fare')
+plt.ylabel('Predicted Fare')
+plt.title('Actual vs Predicted (Random forest)')
+
+
+

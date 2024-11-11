@@ -1,0 +1,86 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import accuracy_score,f1_score,recall_score,precision_score,confusion_matrix,classification_report
+
+df = pd.read_csv("emails.csv")
+
+df
+
+df.shape
+
+df.info()
+
+df.isna().sum()
+
+plt.figure(figsize=(10,5))
+sns.countplot(x="Prediction",hue = "Prediction",data=df,palette =["blue","red"])
+plt.xlabel("Prediction (0:Not Spam,1:Spam)")
+plt.ylabel("Count")
+plt.show()
+
+df["Prediction"].value_counts()
+
+train,test = train_test_split(df,test_size = 0.20,random_state =0)
+x_train , y_train = train.drop(["Email No.","Prediction"],axis =1).values ,train["Prediction"].values
+x_test , y_test = test.drop(["Email No.","Prediction"],axis =1).values ,test["Prediction"].values
+
+sc = MinMaxScaler()
+x_train = sc.fit_transform(x_train)
+x_test = sc.transform(x_test)
+
+**KNN**
+
+knn = KNeighborsClassifier(n_neighbors = 5)
+
+knn.fit(x_train,y_train)
+
+y_pred_knn = knn.predict(x_test)
+
+cf = confusion_matrix(y_test,y_pred_knn)
+sns.heatmap(cf,annot=True,fmt="d")
+plt.xlabel("Predicted Values")
+plt.ylabel("Actual Values")
+plt.show()
+
+accuracy = accuracy_score(y_test,y_pred_knn)
+precision = precision_score(y_test,y_pred_knn)
+f1 = f1_score(y_test,y_pred_knn)
+recall = recall_score(y_test,y_pred_knn)
+print("Accuracy : ",accuracy)
+print("Precision : ",precision)
+print("Recall : ",recall)
+print("F1 Score : ",f1)
+
+**SVC**
+
+svc = SVC(kernel ="linear")
+
+svc.fit(x_train,y_train)
+
+y_pred_svc = svc.predict(x_test)
+
+cf = confusion_matrix(y_test,y_pred_svc)
+sns.heatmap(cf,annot=True,fmt="d")
+plt.xlabel("Predicted Values")
+plt.ylabel("Actual Values")
+plt.show()
+
+accuracy = accuracy_score(y_test,y_pred_svc)
+precision = precision_score(y_test,y_pred_svc)
+f1 = f1_score(y_test,y_pred_svc)
+recall = recall_score(y_test,y_pred_svc)
+print("Accuracy : ",accuracy)
+print("Precision : ",precision)
+print("Recall : ",recall)
+print("F1 Score : ",f1)
+
+
+
+
+

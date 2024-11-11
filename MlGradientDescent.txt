@@ -1,0 +1,45 @@
+**Assignment 3**
+
+Implement Gradient Descent Algorithm to find the local minima of a function. 
+For example, find the local minima of the function y=(x+3)² starting from the point x=2. 
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def f(x):
+    return (x + 3)**2
+
+def gf(x):
+    return 2 * (x + 3)
+
+x_start = 2
+lr = 0.01
+precision = 0.000001
+max_iter = 10000
+
+x = x_start
+gd = [x]
+for i in range(max_iter):
+    x_new = x - lr * gf(x)
+    gd.append(x_new)
+    if abs(x_new - x) < precision:
+        break
+    x = x_new
+x_min = x_new
+print("Local Minima : ",x_new)
+
+x_vals = np.linspace(-6,1,100)
+y_vals = f(x_vals)
+
+plt.figure(figsize = (10,6))
+plt.plot(x_vals,y_vals,label = "y = (x + 3)**2",color = "blue")
+plt.scatter(gd,[f(x) for x in gd],color = "red",label = "Gradient Descent Steps")
+
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Gradient Descent Algorithm")
+plt.legend()
+plt.show()
+
+
+

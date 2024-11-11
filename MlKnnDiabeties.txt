@@ -1,0 +1,82 @@
+**Assignment 4**
+
+Implement K-Nearest Neighbors algorithm on diabetes.csv dataset. Compute confusion matrix, accuracy, error rate, precision and recall on the given dataset. Dataset link : https://www.kaggle.com/datasets/abdallamahgoub/diabetes
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score,precision_score,recall_score,f1_score,confusion_matrix,classification_report
+from sklearn.neighbors import KNeighborsClassifier
+
+df = pd.read_csv("diabetes.csv")
+
+df
+
+df.columns
+
+df.info()
+
+df.describe()
+
+df.isna().sum()
+
+plt.figure(figsize = (10,6))
+sns.countplot(x="Outcome",hue="Outcome",data=df,palette=["blue","red"])
+plt.xlabel("Outcome (0:No diabetes,1:Diabetes)")
+plt.ylabel("Count")
+plt.show()
+
+df["Outcome"].value_counts()
+
+train,test = train_test_split(df,test_size=0.20,random_state=0)
+x_train,y_train = train.drop(["Outcome"],axis=1).values,train["Outcome"].values
+x_test,y_test = test.drop(["Outcome"],axis=1).values,test["Outcome"].values
+
+sc = MinMaxScaler()
+x_train = sc.fit_transform(x_train)
+x_test = sc.transform(x_test)
+
+knn = KNeighborsClassifier()
+
+knn.fit(x_train,y_train)
+
+y_pred = knn.predict(x_test)
+
+cf = confusion_matrix(y_test,y_pred)
+sns.heatmap(cf,annot=True)
+plt.xlabel("Predicted Values")
+plt.ylabel("Actual Values")
+plt.show()
+
+print(classification_report(y_test,y_pred))
+
+accuracy = accuracy_score(y_test,y_pred)
+precision = precision_score(y_test,y_pred)
+recall = recall_score(y_test,y_pred)
+f1 = f1_score(y_test,y_pred)
+print("Accuracy : ",accuracy)
+print("Precision : ",precision)
+print("Recall : ",recall)
+print("F1 Score : ",f1)
+
+# Group by Outcome and calculate the mean glucose level for each Outcome class
+mean_glucose = df.groupby('Outcome')['Glucose'].mean()
+
+# Plotting the bar chart
+plt.bar(mean_glucose.index, mean_glucose.values, color=['skyblue', 'lightcoral'])
+
+# Set titles and labels
+plt.title('Average Glucose Levels for Different Outcomes')
+plt.xlabel('Outcome (0 = No Diabetes, 1 = Diabetes)')
+plt.ylabel('Average Glucose Level')
+
+# Display the plot
+plt.show()
+
+
+
+
+
